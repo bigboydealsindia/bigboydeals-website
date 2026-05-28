@@ -296,7 +296,7 @@ export default function CategoriesAdminPage() {
         setIsSaving(false);
         return;
       }
-      finalUrl = uploadRes.url;
+      finalUrl = uploadRes.url || "";
     }
 
     const parentVal = parentId === "null" ? null : Number(parentId);
