@@ -117,7 +117,7 @@ export default function SalesBannerPage() {
         setIsSaving(false);
         return;
       }
-      finalUrl = uploadRes.url;
+      finalUrl = uploadRes.url || "";
     }
 
     let updatedBanners = [...banners];
