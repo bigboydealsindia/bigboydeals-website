@@ -142,7 +142,7 @@ export default function HeroSettingsPage() {
         setIsSaving(false);
         return;
       }
-      finalUrl = uploadRes.url;
+      finalUrl = uploadRes.url || "";
     }
 
     let updatedBanners = [...banners];
@@ -189,7 +189,7 @@ export default function HeroSettingsPage() {
         setIsSaving(false);
         return;
       }
-      finalUrl = uploadRes.url;
+      finalUrl = uploadRes.url || "";
     }
 
     const updatedVideo = { fileUrl: finalUrl, path: activePath };
