@@ -48,7 +48,7 @@ export function HeroSection() {
 
   return (
     <section className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-6">
-      <div className="flex flex-col md:flex-row gap-4 h-[300px] sm:h-[400px] md:h-[500px]">
+      <div className="flex flex-col md:flex-row gap-4 h-[170px] sm:h-[400px] md:h-[500px]">
         {/* Banner Slider Container (80% Area) */}
         {banners.length > 0 && (
           <div className="flex-[3] relative rounded-[var(--radius)] overflow-hidden bg-secondary/20 group">
