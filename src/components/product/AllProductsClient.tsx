@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -53,12 +53,17 @@ interface AllProductsClientProps {
   initialBrands: any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   categories: any[];
+  // NAYE PROPS: For dynamic category selection
+  preSelectedMainCat?: number | null;
+  preSelectedSubCat?: number | null;
 }
 
 export function AllProductsClient({
   initialProducts,
   initialBrands,
   categories,
+  preSelectedMainCat = null,
+  preSelectedSubCat = null,
 }: AllProductsClientProps) {
   const router = useRouter();
 
@@ -66,8 +71,14 @@ export function AllProductsClient({
   const toggleItem = useWishlistStore((state) => state.toggleItem);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
 
-  const [selectedMainCat, setSelectedMainCat] = useState<number | null>(null);
-  const [selectedSubCat, setSelectedSubCat] = useState<number | null>(null);
+  // FIX: Initialize state from props
+  const [selectedMainCat, setSelectedMainCat] = useState<number | null>(
+    preSelectedMainCat,
+  );
+  const [selectedSubCat, setSelectedSubCat] = useState<number | null>(
+    preSelectedSubCat,
+  );
+
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("newest");
 
@@ -296,7 +307,6 @@ export function AllProductsClient({
       <div className="space-y-4">
         <h3 className="font-bold text-lg tracking-tight">Price Range</h3>
 
-        {/* FIX: Extra padding given to slider container so thumb doesn't get clipped */}
         <div className="px-2 pt-4 pb-2">
           <Slider
             min={absoluteMinPrice}
@@ -375,14 +385,46 @@ export function AllProductsClient({
 
   return (
     <div className="max-w-[1400px] mx-auto w-full px-4 md:px-8 py-6 min-h-screen">
+      {/* SMART BREADCRUMB */}
       <nav className="flex items-center space-x-2 text-xs text-muted-foreground mb-6 overflow-x-auto whitespace-nowrap pb-2">
         <Link href="/" className="hover:text-primary transition-colors">
           Home
         </Link>
         <ChevronRight size={12} className="opacity-60" />
-        <span className="text-foreground font-semibold truncate">
-          All Products
-        </span>
+        <Link
+          href="/all-products"
+          className="hover:text-primary transition-colors"
+        >
+          Shop
+        </Link>
+        {selectedMainCat && (
+          <>
+            <ChevronRight size={12} className="opacity-60" />
+            <span
+              className={
+                selectedSubCat
+                  ? "hover:text-primary transition-colors cursor-pointer"
+                  : "text-foreground font-semibold truncate"
+              }
+              onClick={() => selectedSubCat && setSelectedSubCat(null)}
+            >
+              {mainCategories.find((c) => c.id === selectedMainCat)?.name}
+            </span>
+          </>
+        )}
+        {selectedSubCat && (
+          <>
+            <ChevronRight size={12} className="opacity-60" />
+            <span className="text-foreground font-semibold truncate">
+              {categories.find((c) => c.id === selectedSubCat)?.name}
+            </span>
+          </>
+        )}
+        {!selectedMainCat && !selectedSubCat && (
+          <span className="text-foreground font-semibold truncate">
+            All Products
+          </span>
+        )}
       </nav>
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -405,7 +447,6 @@ export function AllProductsClient({
                   <SlidersHorizontal size={18} /> Filters and Categories
                 </Button>
               </SheetTrigger>
-              {/* FIX: Added px-6 pt-12 pb-8 specifically so content doesn't stick to the edges */}
               <SheetContent
                 side="left"
                 className="w-[85vw] sm:max-w-md overflow-y-auto px-6 pt-12 pb-8"
