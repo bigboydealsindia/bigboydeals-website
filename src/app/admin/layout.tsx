@@ -6,6 +6,10 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+// FIX: Ye line Next.js ko batayegi ki admin pages ko build time pe pre-render nahi karna hai.
+// Isse Vercel build time pe database query nahi karega aur 60-second timeout error solve ho jayega.
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {
@@ -28,7 +32,7 @@ export default async function AdminLayout({
   }
 
   return (
-    // FIX: Changed to `flex-col lg:flex-row` so mobile has TopBar at the top and content below
+    // Changed to `flex-col lg:flex-row` so mobile has TopBar at the top and content below
     <div className="flex flex-col lg:flex-row h-screen w-full bg-background overflow-hidden">
       <AdminSidebar user={dbUser} />
 
