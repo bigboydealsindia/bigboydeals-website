@@ -9,6 +9,7 @@ import {
   ChevronRight,
   LogOut,
   Loader2,
+  UserStar, // Admin icon import kiya
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,27 @@ export function AccountClient({ user }: { user: any }) {
 
       {/* Menu Cards Container */}
       <div className="bg-background border border-border rounded-md shadow-sm overflow-hidden flex flex-col mb-8">
+        {/* Admin Panel Link (Only visible to Admin) */}
+        {user?.role === "admin" && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-between p-4 sm:p-5 hover:bg-secondary/20 transition-colors border-b border-border/50 group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 text-primary p-2.5 rounded-md group-hover:scale-105 transition-transform">
+                <UserStar size={22} />
+              </div>
+              <span className="font-bold text-sm sm:text-base text-foreground">
+                Admin Panel
+              </span>
+            </div>
+            <ChevronRight
+              size={18}
+              className="text-muted-foreground group-hover:text-primary transition-colors"
+            />
+          </Link>
+        )}
+
         {/* Profile Link */}
         <Link
           href="/profile"

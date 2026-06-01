@@ -50,19 +50,28 @@ export async function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
           {/* Column 1: Brand Info & Social Networks */}
           <div className="space-y-5">
+            {/* UPDATED LOGO SECTION */}
             <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 bg-secondary/20">
                 <Image
-                  src="/placeholder-logo.png"
-                  alt="Big Boy Deals Logo"
-                  fill
-                  className="object-cover bg-secondary"
+                  src="/symbol-logo.webp?v=2"
+                  alt="Symbol Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                  unoptimized
                 />
               </div>
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Big Boy Deals
-              </h2>
+              <Image
+                src="/typo-logo.webp?v=2"
+                alt="Big Boy Deals"
+                width={150}
+                height={50}
+                className="object-contain"
+                unoptimized
+              />
             </div>
+
             <p className="text-sm text-muted-foreground leading-relaxed">
               Your ultimate destination for premium quality fashion and
               lifestyle products. We deliver style, comfort, and unmatched value

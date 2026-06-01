@@ -73,9 +73,15 @@ export function AdminSidebar({ user }: { user: any }) {
           >
             <ChevronRight size={24} />
           </button>
-          <span className="font-bold text-lg tracking-tight text-foreground">
-            Big Boy Deals
-          </span>
+          {/* MOBILE TOP NAVBAR LOGO */}
+          <Image
+            src="/typo-logo.webp?v=2"
+            alt="Big Boy Deals"
+            width={120}
+            height={32}
+            className="object-contain"
+            unoptimized
+          />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -109,12 +115,14 @@ export function AdminSidebar({ user }: { user: any }) {
               className="fixed inset-y-0 left-0 w-[280px] bg-background flex flex-col z-[110] lg:hidden shadow-2xl overflow-y-auto hide-scrollbar border-r border-border"
             >
               <div className="flex items-center justify-between p-4 h-20 shrink-0 border-b border-border/50">
+                {/* MOBILE DRAWER LOGO */}
                 <Image
-                  src="/logo.png"
-                  alt="Logo"
+                  src="/typo-logo.webp?v=2"
+                  alt="Big Boy Deals"
                   width={120}
                   height={35}
                   className="object-contain"
+                  unoptimized
                 />
                 <button
                   onClick={() => setIsMobileOpen(false)}
@@ -229,12 +237,14 @@ export function AdminSidebar({ user }: { user: any }) {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="overflow-hidden"
               >
+                {/* PC SIDEBAR LOGO */}
                 <Image
-                  src="/logo.png"
-                  alt="Logo"
+                  src="/typo-logo.webp?v=2"
+                  alt="Big Boy Deals"
                   width={120}
                   height={35}
                   className="object-contain"
+                  unoptimized
                 />
               </motion.div>
             )}

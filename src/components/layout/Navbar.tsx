@@ -53,7 +53,6 @@ const searchPlaceholders = [
 ];
 
 export function Navbar() {
-  const [logoError, setLogoError] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -234,25 +233,40 @@ export function Navbar() {
       <header className="sticky top-0 z-[60] w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-[1400px] mx-auto w-full px-4 md:px-8">
           <div className="flex flex-col lg:flex-row lg:h-20 lg:items-center justify-between gap-4 py-4 lg:py-0">
-            <div className="flex items-center justify-between w-full lg:w-auto">
-              <Link href="/" className="flex-shrink-0">
-                {!logoError ? (
-                  <Image
-                    src="/logo.png"
-                    alt="Big Boy Deals"
-                    width={140}
-                    height={40}
-                    onError={() => setLogoError(true)}
-                    className="object-contain"
-                  />
-                ) : (
-                  <span className="text-2xl font-extrabold tracking-tight text-primary">
-                    Big Boy Deals
-                  </span>
-                )}
+            {/* LOGO CONTAINER: Responsive Layout for Mobile & PC */}
+            <div className="flex items-center justify-between w-full lg:w-auto relative">
+              {/* MOBILE LEFT: Symbol Logo */}
+              <Link
+                href="/"
+                className="lg:hidden shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-secondary/20 overflow-hidden border border-border"
+              >
+                <Image
+                  src="/symbol-logo.webp?v=2"
+                  alt="Symbol Logo"
+                  width={35}
+                  height={35}
+                  className="object-cover"
+                  unoptimized
+                />
               </Link>
 
-              <div className="lg:hidden relative">
+              {/* MOBILE CENTER & DESKTOP LEFT: Typography Logo */}
+              <Link
+                href="/"
+                className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0"
+              >
+                <Image
+                  src="/typo-logo.webp?v=2"
+                  alt="Big Boy Deals"
+                  width={150}
+                  height={50}
+                  className="object-contain"
+                  unoptimized
+                />
+              </Link>
+
+              {/* MOBILE RIGHT: Wishlist Icon */}
+              <div className="lg:hidden relative shrink-0">
                 <Link href="/wishlist">
                   <Heart
                     size={24}
