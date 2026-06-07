@@ -39,7 +39,7 @@ interface DBUser {
   phone: string | null;
   email: string | null;
   fullName: string | null;
-  role: "admin" | "user";
+  role: "admin" | "user" | "staff";
   createdAt: Date;
 }
 
