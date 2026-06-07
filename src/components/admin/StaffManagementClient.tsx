@@ -62,17 +62,26 @@ export function StaffManagementClient({
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
 
-    const result = await createStaffAccount(formData, selectedPages);
+    try {
+      const result = await createStaffAccount(formData, selectedPages);
 
-    if (result.success) {
-      toast.success("Staff account created successfully!");
-      setIsAdding(false);
-      setSelectedPages(["/admin"]); // reset form state
-      router.refresh(); // Refresh list
-    } else {
-      toast.error(result.error || "Failed to create staff account.");
+      if (result.success) {
+        toast.success("Staff account created successfully!");
+        setIsAdding(false);
+        setSelectedPages(["/admin"]); // reset form state
+        router.refresh(); // Refresh list
+      } else {
+        toast.error(result.error || "Failed to create staff account.");
+      }
+    } catch (error) {
+      console.error("Server Error:", error);
+      toast.error(
+        "Internal Server Error. Please check if Vercel keys are set.",
+      );
+    } finally {
+      // Finally block ensures loading is ALWAYS set to false, chahe success ho ya error
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
