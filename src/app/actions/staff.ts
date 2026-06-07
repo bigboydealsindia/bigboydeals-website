@@ -56,17 +56,31 @@ export async function createStaffAccount(
   }
 }
 
-// NAYA: Edit Staff Access
+// FIX: Updated to handle password changes
 export async function updateStaffAccount(
   id: string,
   fullName: string,
   accessPages: string[],
+  newPassword?: string,
 ) {
   try {
+    // Agar admin ne naya password daala hai, toh use update karo
+    if (newPassword && newPassword.trim() !== "") {
+      const { error: authError } =
+        await supabaseAdmin.auth.admin.updateUserById(id, {
+          password: newPassword,
+        });
+      if (authError) {
+        return { success: false, error: authError.message };
+      }
+    }
+
+    // Database mein name aur pages update karo
     await db
       .update(users)
       .set({ fullName, accessPages })
       .where(eq(users.id, id));
+
     return { success: true };
   } catch (error) {
     console.error("Error updating staff:", error);
@@ -74,14 +88,11 @@ export async function updateStaffAccount(
   }
 }
 
-// NAYA: Delete Staff Completely (Auth + DB)
 export async function deleteStaffAccount(id: string) {
   try {
-    // Pehle Supabase Auth se delete karo
     const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
     if (error) return { success: false, error: error.message };
 
-    // Phir apni Database se delete karo
     await db.delete(users).where(eq(users.id, id));
     return { success: true };
   } catch (error) {

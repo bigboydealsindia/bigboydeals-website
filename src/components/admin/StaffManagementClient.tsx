@@ -21,8 +21,6 @@ import {
   User,
   Pen,
   Trash2,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import {
   Dialog,
@@ -73,9 +71,6 @@ export function StaffManagementClient({
 
   // Form States
   const [selectedPages, setSelectedPages] = useState<string[]>(["/admin"]);
-  const [showPasswordMap, setShowPasswordMap] = useState<{
-    [key: string]: boolean;
-  }>({});
 
   const togglePageSelection = (pageValue: string) => {
     setSelectedPages((prev) =>
@@ -120,12 +115,14 @@ export function StaffManagementClient({
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
     const fullName = formData.get("fullName") as string;
+    const newPassword = formData.get("password") as string;
 
     try {
       const result = await updateStaffAccount(
         isEditing.id,
         fullName,
         selectedPages,
+        newPassword,
       );
       if (result.success) {
         toast.success("Staff updated successfully!");
@@ -159,14 +156,6 @@ export function StaffManagementClient({
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  // Toggle Password Eye Icon Function
-  const togglePasswordVisibility = (id: string) => {
-    toast.info("Passwords are encrypted by Supabase for security.", {
-      description: "Admin cannot view original passwords after creation.",
-    });
-    setShowPasswordMap((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const openEditModal = (staff: any) => {
@@ -228,23 +217,10 @@ export function StaffManagementClient({
                     <td className="px-6 py-4 text-muted-foreground">
                       {staff.email}
                     </td>
-                    {/* Password Column with Eye Icon */}
                     <td className="px-6 py-4 text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs mt-1 tracking-widest">
-                          {showPasswordMap[staff.id] ? "ENCRYPTED" : "••••••••"}
-                        </span>
-                        <button
-                          onClick={() => togglePasswordVisibility(staff.id)}
-                          className="p-1 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-secondary"
-                        >
-                          {showPasswordMap[staff.id] ? (
-                            <EyeOff size={14} />
-                          ) : (
-                            <Eye size={14} />
-                          )}
-                        </button>
-                      </div>
+                      <span className="font-mono text-xs tracking-widest bg-secondary/50 px-2 py-1 rounded">
+                        ••••••••
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1.5">
@@ -268,12 +244,14 @@ export function StaffManagementClient({
                         <button
                           onClick={() => openEditModal(staff)}
                           className="p-2 text-muted-foreground hover:text-primary transition-colors bg-secondary/50 hover:bg-primary/10 rounded-md"
+                          title="Edit Staff"
                         >
                           <Pen size={16} />
                         </button>
                         <button
                           onClick={() => setDeleteId(staff.id)}
                           className="p-2 text-muted-foreground hover:text-destructive transition-colors bg-secondary/50 hover:bg-destructive/10 rounded-md"
+                          title="Delete Staff"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -302,7 +280,8 @@ export function StaffManagementClient({
           </DialogHeader>
 
           <form onSubmit={handleAddStaff} className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* FIX: Changed grid layout to prevent inputs from squishing */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Full Name</label>
                 <div className="relative">
@@ -334,7 +313,8 @@ export function StaffManagementClient({
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+              {/* Password takes full width on small screens to avoid wrapping */}
+              <div className="space-y-2 sm:col-span-2">
                 <label className="text-sm font-semibold">
                   Temporary Password
                 </label>
@@ -424,25 +404,48 @@ export function StaffManagementClient({
               Edit Staff Access
             </DialogTitle>
             <DialogDescription>
-              Update permissions for {isEditing?.fullName}.
+              Update permissions or reset password for {isEditing?.fullName}.
             </DialogDescription>
           </DialogHeader>
 
           {isEditing && (
             <form onSubmit={handleEditStaff} className="p-6 space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Full Name</label>
-                <div className="relative">
-                  <User
-                    size={16}
-                    className="absolute left-3 top-3 text-muted-foreground"
-                  />
-                  <Input
-                    name="fullName"
-                    defaultValue={isEditing.fullName}
-                    required
-                    className="pl-10 rounded-md border-border h-10"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Full Name</label>
+                  <div className="relative">
+                    <User
+                      size={16}
+                      className="absolute left-3 top-3 text-muted-foreground"
+                    />
+                    <Input
+                      name="fullName"
+                      defaultValue={isEditing.fullName}
+                      required
+                      className="pl-10 rounded-md border-border h-10"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    New Password{" "}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      (Optional)
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      size={16}
+                      className="absolute left-3 top-3 text-muted-foreground"
+                    />
+                    <Input
+                      type="text"
+                      name="password"
+                      placeholder="Leave blank to keep current"
+                      minLength={6}
+                      className="pl-10 rounded-md border-border h-10"
+                    />
+                  </div>
                 </div>
               </div>
 
