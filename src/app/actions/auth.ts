@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // Database Sync Logic: Pehla user admin, baaki sab normal user
 async function syncUserToDatabase(
   supabaseUser: any,
@@ -28,7 +30,8 @@ async function syncUserToDatabase(
       fullName:
         fullName ||
         supabaseUser.user_metadata?.full_name ||
-        supabaseUser.email?.split("@")[0],
+        supabaseUser.email?.split("@")[0] ||
+        "User",
       role: isFirstUser ? "admin" : "user",
     });
   }
@@ -121,7 +124,7 @@ export async function signInWithGoogle() {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  
+
   // Yahan se redirect("/login") hata diya hai taaki "Failed to fetch" error na aaye.
   // Redirect ab hum client-side se karenge.
   return { success: true };
@@ -129,13 +132,34 @@ export async function signOut() {
 
 export async function getUserProfile() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) return null;
 
-  const dbUser = await db.query.users.findFirst({
-    where: eq(users.id, user.id),
-  });
+  try {
+    let dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+    });
 
-  return dbUser;
+    // 🚀 SELF-HEALING LOGIC: Google OAuth Bypass Fix
+    if (!dbUser) {
+      // Agar Auth mein hai par DB mein missing hai, toh yahan automatic sync chalega
+      await syncUserToDatabase(
+        user,
+        user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+      );
+
+      // Sync hone ke baad turant DB se naya data fetch kar lenge
+      dbUser = await db.query.users.findFirst({
+        where: eq(users.id, user.id),
+      });
+    }
+
+    return dbUser;
+  } catch (error) {
+    console.error("Error fetching or syncing user profile:", error);
+    return null;
+  }
 }
