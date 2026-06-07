@@ -37,7 +37,7 @@ interface DBUser {
   state?: string | null;
   pincode?: string | null;
   country?: string | null;
-  role: "admin" | "user";
+  role: "user" | "admin" | "staff";
   createdAt: Date;
 }
 
