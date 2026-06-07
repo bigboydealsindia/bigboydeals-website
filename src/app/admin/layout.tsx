@@ -27,8 +27,9 @@ export default async function AdminLayout({
     where: eq(users.id, data.user.id),
   });
 
-  if (dbUser?.role !== "admin") {
-    redirect("/"); // Non-admins are sent back to the store
+  // NAYA: Ab 'admin' aur 'staff' dono ko entry milegi
+  if (dbUser?.role !== "admin" && dbUser?.role !== "staff") {
+    redirect("/"); // Non-admins and non-staff are sent back to the store
   }
 
   return (

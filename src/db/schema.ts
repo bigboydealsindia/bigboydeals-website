@@ -16,7 +16,7 @@ import {
 // ==========================================
 // ENUMS
 // ==========================================
-export const roleEnum = pgEnum("role", ["admin", "user"]);
+export const roleEnum = pgEnum("role", ["admin", "user", "staff"]);
 export const couponTypeEnum = pgEnum("coupon_type", [
   "per_product",
   "overall_percent",
@@ -48,6 +48,7 @@ export const users = pgTable("users", {
   country: text("country").default("India"),
 
   role: roleEnum("role").default("user").notNull(),
+  accessPages: jsonb("access_pages").$type<string[]>().default([]).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

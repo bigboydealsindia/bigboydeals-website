@@ -22,12 +22,14 @@ import {
   MessageCircleMore,
   TicketPercent,
   ChevronRight,
+  UsersRound,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { LogoutDialog } from "@/components/shared/LogoutDialog";
+import { toast } from "sonner";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -42,6 +44,7 @@ const menuItems = [
   { name: "Newsletter", href: "/admin/newsletter", icon: Mail },
   { name: "Messages", href: "/admin/messages", icon: MessageCircleMore },
   { name: "Coupons", href: "/admin/coupons", icon: TicketPercent },
+  { name: "Staff", href: "/admin/staff-management", icon: UsersRound },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
@@ -51,6 +54,30 @@ export function AdminSidebar({ user }: { user: any }) {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // 1. FILTER MENU ITEMS BASED ON ROLE & ACCESS
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (user?.role === "admin") return true; // Admin sees everything
+    if (item.href === "/admin/staff-management") return false; // Staff never sees staff management
+    return user?.accessPages?.includes(item.href); // Staff only sees allowed pages
+  });
+
+  // 2. SECURITY CHECK: PREVENT UNAUTHORIZED URL ACCESS
+  useEffect(() => {
+    if (user?.role === "staff" && user?.accessPages) {
+      // Check if current path matches allowed pages (or is a sub-page like /admin/products/new)
+      const isAllowed = user.accessPages.some(
+        (page: string) => pathname === page || pathname.startsWith(`${page}/`),
+      );
+
+      if (!isAllowed && pathname !== "/admin") {
+        toast.error(
+          "Access Denied: You don't have permission to view this page.",
+        );
+        router.push("/admin");
+      }
+    }
+  }, [pathname, user, router]);
 
   // FIX: Using setTimeout to safely update state within useEffect and prevent cascading renders
   useEffect(() => {
@@ -85,7 +112,7 @@ export function AdminSidebar({ user }: { user: any }) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Admin
+            {user?.role === "staff" ? "Staff" : "Admin"}
           </span>
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -132,9 +159,9 @@ export function AdminSidebar({ user }: { user: any }) {
                 </button>
               </div>
 
-              {/* Sidebar Menu Items */}
+              {/* Sidebar Menu Items (Filtered) */}
               <nav className="flex-1 px-3 space-y-2 mt-4">
-                {menuItems.map((item) => {
+                {filteredMenuItems.map((item) => {
                   const isActive =
                     item.href === "/admin" || item.href === "/"
                       ? pathname === item.href
@@ -171,14 +198,16 @@ export function AdminSidebar({ user }: { user: any }) {
                 <Separator className="my-4" />
                 <div className="flex items-center gap-3 px-3">
                   <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shadow-sm">
-                    {user?.fullName?.charAt(0).toUpperCase() || "A"}
+                    {user?.fullName?.charAt(0).toUpperCase() || "U"}
                   </div>
                   <div className="overflow-hidden">
                     <p className="text-sm font-bold truncate text-foreground">
-                      {user?.fullName || "Admin"}
+                      {user?.fullName || "User"}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      Administrator
+                      {user?.role === "staff"
+                        ? "Staff Member"
+                        : "Administrator"}
                     </p>
                   </div>
                 </div>
@@ -201,7 +230,9 @@ export function AdminSidebar({ user }: { user: any }) {
                           Secure Session
                         </h4>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Admin Access
+                          {user?.role === "staff"
+                            ? "Staff Access"
+                            : "Admin Access"}
                         </p>
                       </div>
                     </div>
@@ -221,7 +252,7 @@ export function AdminSidebar({ user }: { user: any }) {
       </AnimatePresence>
 
       {/* ======================================================== */}
-      {/* PC VIEW (Hidden on Mobile) - Exact same as before */}
+      {/* PC VIEW (Hidden on Mobile) */}
       {/* ======================================================== */}
       <motion.aside
         animate={{ width: isCollapsed ? 80 : 280 }}
@@ -262,7 +293,7 @@ export function AdminSidebar({ user }: { user: any }) {
         </div>
 
         <nav className="flex-1 px-3 space-y-2 mt-4">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isActive =
               item.href === "/admin" || item.href === "/"
                 ? pathname === item.href
@@ -313,15 +344,15 @@ export function AdminSidebar({ user }: { user: any }) {
             className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : "px-3"}`}
           >
             <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shadow-sm">
-              {user?.fullName?.charAt(0).toUpperCase() || "A"}
+              {user?.fullName?.charAt(0).toUpperCase() || "U"}
             </div>
             {!isCollapsed && (
               <div className="overflow-hidden">
                 <p className="text-sm font-bold truncate text-foreground">
-                  {user?.fullName || "Admin"}
+                  {user?.fullName || "User"}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  Administrator
+                  {user?.role === "staff" ? "Staff Member" : "Administrator"}
                 </p>
               </div>
             )}
@@ -351,7 +382,9 @@ export function AdminSidebar({ user }: { user: any }) {
                         Secure Session
                       </h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Admin Access
+                        {user?.role === "staff"
+                          ? "Staff Access"
+                          : "Admin Access"}
                       </p>
                     </div>
                   </div>
