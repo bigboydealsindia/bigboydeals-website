@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { createStaffAccount } from "@/app/actions/staff";
 import { toast } from "sonner";
+import {
+  createStaffAccount,
+  updateStaffAccount,
+  deleteStaffAccount,
+} from "@/app/actions/staff";
 import {
   UsersRound,
   ShieldCheck,
@@ -15,10 +19,27 @@ import {
   Mail,
   Lock,
   User,
-  X,
+  Pen,
+  Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-// Jo pages staff access kar sakta hai uski list
 const availablePages = [
   { label: "Dashboard", value: "/admin" },
   { label: "Categories", value: "/admin/categories" },
@@ -40,9 +61,21 @@ export function StaffManagementClient({
   initialStaff: any[];
 }) {
   const router = useRouter();
+
+  // Modals States
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Loading States
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPages, setSelectedPages] = useState<string[]>(["/admin"]); // Default Dashboard access
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Form States
+  const [selectedPages, setSelectedPages] = useState<string[]>(["/admin"]);
+  const [showPasswordMap, setShowPasswordMap] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const togglePageSelection = (pageValue: string) => {
     setSelectedPages((prev) =>
@@ -52,186 +85,115 @@ export function StaffManagementClient({
     );
   };
 
+  // 1. ADD STAFF HANDLER
   const handleAddStaff = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (selectedPages.length === 0) {
-      toast.error("Please select at least one page for access.");
-      return;
-    }
+    if (selectedPages.length === 0)
+      return toast.error("Select at least one page.");
 
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
 
     try {
       const result = await createStaffAccount(formData, selectedPages);
-
       if (result.success) {
         toast.success("Staff account created successfully!");
         setIsAdding(false);
-        setSelectedPages(["/admin"]); // reset form state
-        router.refresh(); // Refresh list
+        setSelectedPages(["/admin"]);
+        router.refresh();
       } else {
-        toast.error(result.error || "Failed to create staff account.");
+        toast.error(result.error || "Failed to create account.");
       }
-    } catch (error) {
-      console.error("Server Error:", error);
-      toast.error(
-        "Internal Server Error. Please check if Vercel keys are set.",
-      );
+    } catch {
+      toast.error("Internal Server Error.");
     } finally {
-      // Finally block ensures loading is ALWAYS set to false, chahe success ho ya error
       setIsLoading(false);
     }
   };
 
+  // 2. EDIT STAFF HANDLER
+  const handleEditStaff = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (selectedPages.length === 0)
+      return toast.error("Select at least one page.");
+
+    setIsLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const fullName = formData.get("fullName") as string;
+
+    try {
+      const result = await updateStaffAccount(
+        isEditing.id,
+        fullName,
+        selectedPages,
+      );
+      if (result.success) {
+        toast.success("Staff updated successfully!");
+        setIsEditing(null);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to update.");
+      }
+    } catch {
+      toast.error("Internal Server Error.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 3. DELETE STAFF HANDLER
+  const handleDeleteStaff = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      const result = await deleteStaffAccount(deleteId);
+      if (result.success) {
+        toast.success("Staff account deleted permanently!");
+        setDeleteId(null);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to delete.");
+      }
+    } catch {
+      toast.error("Internal Server Error.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Toggle Password Eye Icon Function
+  const togglePasswordVisibility = (id: string) => {
+    toast.info("Passwords are encrypted by Supabase for security.", {
+      description: "Admin cannot view original passwords after creation.",
+    });
+    setShowPasswordMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const openEditModal = (staff: any) => {
+    setIsEditing(staff);
+    setSelectedPages(staff.accessPages || ["/admin"]);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
           <UsersRound size={20} className="text-primary" /> Current Staff
         </h2>
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} className="gap-2">
-            <Plus size={16} /> Add New Staff
-          </Button>
-        )}
+        <Button
+          onClick={() => {
+            setSelectedPages(["/admin"]);
+            setIsAdding(true);
+          }}
+          className="gap-2 rounded-md"
+        >
+          <Plus size={16} /> Add New Staff
+        </Button>
       </div>
 
-      {/* ADD STAFF FORM (Toggleable) */}
-      {isAdding && (
-        <div className="bg-secondary/10 border border-border p-6 rounded-[var(--radius)] shadow-sm animate-in slide-in-from-top-4 duration-300">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-foreground">
-              Create Staff Account
-            </h3>
-            <button
-              onClick={() => setIsAdding(false)}
-              className="text-muted-foreground hover:text-destructive transition-colors p-1"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <form onSubmit={handleAddStaff} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Name */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Full Name</label>
-                <div className="relative">
-                  <User
-                    size={16}
-                    className="absolute left-3 top-3 text-muted-foreground"
-                  />
-                  <Input
-                    name="fullName"
-                    placeholder="John Doe"
-                    required
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              {/* Email */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email Address</label>
-                <div className="relative">
-                  <Mail
-                    size={16}
-                    className="absolute left-3 top-3 text-muted-foreground"
-                  />
-                  <Input
-                    type="email"
-                    name="email"
-                    placeholder="staff@bigboydeals.com"
-                    required
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              {/* Password */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Temporary Password
-                </label>
-                <div className="relative">
-                  <Lock
-                    size={16}
-                    className="absolute left-3 top-3 text-muted-foreground"
-                  />
-                  <Input
-                    type="text"
-                    name="password"
-                    placeholder="e.g., Staff@123"
-                    required
-                    minLength={6}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Access Permissions Setup */}
-            <div>
-              <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <ShieldCheck size={18} className="text-primary" /> Assign Page
-                Access
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {availablePages.map((page) => (
-                  <label
-                    key={page.value}
-                    className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
-                      selectedPages.includes(page.value)
-                        ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border hover:border-primary/50 bg-background"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedPages.includes(page.value)}
-                      onChange={() => togglePageSelection(page.value)}
-                      className="accent-primary w-4 h-4"
-                      disabled={page.value === "/admin"} // Dashboard access is mandatory
-                    />
-                    <span className="text-sm font-medium select-none">
-                      {page.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-3">
-                * Selected pages will be visible in their sidebar. Unselected
-                pages will show "Access Denied".
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAdding(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="min-w-[150px]"
-              >
-                {isLoading ? (
-                  <Loader2 size={16} className="animate-spin mr-2" />
-                ) : null}
-                {isLoading ? "Creating..." : "Create Account"}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
-
       {/* STAFF LIST TABLE */}
-      <div className="bg-background border border-border rounded-[var(--radius)] overflow-hidden">
+      <div className="bg-background border border-border rounded-md overflow-hidden shadow-sm">
         {initialStaff.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground flex flex-col items-center justify-center">
             <UsersRound size={40} className="mb-3 opacity-20" />
@@ -247,9 +209,10 @@ export function StaffManagementClient({
                 <tr>
                   <th className="px-6 py-4 font-semibold">Name</th>
                   <th className="px-6 py-4 font-semibold">Email</th>
+                  <th className="px-6 py-4 font-semibold">Password</th>
                   <th className="px-6 py-4 font-semibold">Allowed Access</th>
                   <th className="px-6 py-4 font-semibold text-right">
-                    Joined On
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -265,6 +228,24 @@ export function StaffManagementClient({
                     <td className="px-6 py-4 text-muted-foreground">
                       {staff.email}
                     </td>
+                    {/* Password Column with Eye Icon */}
+                    <td className="px-6 py-4 text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs mt-1 tracking-widest">
+                          {showPasswordMap[staff.id] ? "ENCRYPTED" : "••••••••"}
+                        </span>
+                        <button
+                          onClick={() => togglePasswordVisibility(staff.id)}
+                          className="p-1 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-secondary"
+                        >
+                          {showPasswordMap[staff.id] ? (
+                            <EyeOff size={14} />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1.5">
                         {staff.accessPages?.map((path: string) => {
@@ -274,7 +255,7 @@ export function StaffManagementClient({
                           return (
                             <span
                               key={path}
-                              className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider"
+                              className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider"
                             >
                               {label}
                             </span>
@@ -282,8 +263,21 @@ export function StaffManagementClient({
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right text-muted-foreground">
-                      {new Date(staff.createdAt).toLocaleDateString()}
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openEditModal(staff)}
+                          className="p-2 text-muted-foreground hover:text-primary transition-colors bg-secondary/50 hover:bg-primary/10 rounded-md"
+                        >
+                          <Pen size={16} />
+                        </button>
+                        <button
+                          onClick={() => setDeleteId(staff.id)}
+                          className="p-2 text-muted-foreground hover:text-destructive transition-colors bg-secondary/50 hover:bg-destructive/10 rounded-md"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -292,6 +286,263 @@ export function StaffManagementClient({
           </div>
         )}
       </div>
+
+      {/* ======================================================== */}
+      {/* 1. ADD NEW STAFF DIALOG */}
+      {/* ======================================================== */}
+      <Dialog open={isAdding} onOpenChange={setIsAdding}>
+        <DialogContent className="max-w-2xl rounded-md bg-background border-border p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 border-b border-border bg-secondary/10">
+            <DialogTitle className="text-xl font-bold">
+              Create Staff Account
+            </DialogTitle>
+            <DialogDescription>
+              Add a new staff member and assign their page access.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddStaff} className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Full Name</label>
+                <div className="relative">
+                  <User
+                    size={16}
+                    className="absolute left-3 top-3 text-muted-foreground"
+                  />
+                  <Input
+                    name="fullName"
+                    placeholder="John Doe"
+                    required
+                    className="pl-10 rounded-md border-border h-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Email Address</label>
+                <div className="relative">
+                  <Mail
+                    size={16}
+                    className="absolute left-3 top-3 text-muted-foreground"
+                  />
+                  <Input
+                    type="email"
+                    name="email"
+                    placeholder="staff@bigboydeals.com"
+                    required
+                    className="pl-10 rounded-md border-border h-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">
+                  Temporary Password
+                </label>
+                <div className="relative">
+                  <Lock
+                    size={16}
+                    className="absolute left-3 top-3 text-muted-foreground"
+                  />
+                  <Input
+                    type="text"
+                    name="password"
+                    placeholder="e.g., Staff@123"
+                    required
+                    minLength={6}
+                    className="pl-10 rounded-md border-border h-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                <ShieldCheck size={18} className="text-primary" /> Assign Page
+                Access
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {availablePages.map((page) => (
+                  <label
+                    key={page.value}
+                    className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
+                      selectedPages.includes(page.value)
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/50 bg-background"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPages.includes(page.value)}
+                      onChange={() => togglePageSelection(page.value)}
+                      className="accent-primary w-4 h-4"
+                      disabled={page.value === "/admin"}
+                    />
+                    <span className="text-sm font-medium select-none">
+                      {page.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAdding(false)}
+                className="rounded-md h-10"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="rounded-md h-10 min-w-[160px]"
+              >
+                {isLoading ? (
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                ) : null}
+                {isLoading ? "Creating..." : "Create Staff Account"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* 2. EDIT STAFF DIALOG */}
+      {/* ======================================================== */}
+      <Dialog
+        open={!!isEditing}
+        onOpenChange={(open) => !open && setIsEditing(null)}
+      >
+        <DialogContent className="max-w-2xl rounded-md bg-background border-border p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 border-b border-border bg-secondary/10">
+            <DialogTitle className="text-xl font-bold">
+              Edit Staff Access
+            </DialogTitle>
+            <DialogDescription>
+              Update permissions for {isEditing?.fullName}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isEditing && (
+            <form onSubmit={handleEditStaff} className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Full Name</label>
+                <div className="relative">
+                  <User
+                    size={16}
+                    className="absolute left-3 top-3 text-muted-foreground"
+                  />
+                  <Input
+                    name="fullName"
+                    defaultValue={isEditing.fullName}
+                    required
+                    className="pl-10 rounded-md border-border h-10"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-primary" /> Update Page
+                  Access
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {availablePages.map((page) => (
+                    <label
+                      key={`edit-${page.value}`}
+                      className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
+                        selectedPages.includes(page.value)
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:border-primary/50 bg-background"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPages.includes(page.value)}
+                        onChange={() => togglePageSelection(page.value)}
+                        className="accent-primary w-4 h-4"
+                        disabled={page.value === "/admin"}
+                      />
+                      <span className="text-sm font-medium select-none">
+                        {page.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditing(null)}
+                  className="rounded-md h-10"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="rounded-md h-10 min-w-[140px]"
+                >
+                  {isLoading ? (
+                    <Loader2 size={16} className="animate-spin mr-2" />
+                  ) : null}
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* 3. DELETE CONFIRMATION DIALOG */}
+      {/* ======================================================== */}
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent className="rounded-md border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-bold">
+              Delete Staff Account?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              staff member's account and remove their access to the admin panel.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 gap-3 sm:space-x-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteId(null)}
+              disabled={isDeleting}
+              className="rounded-md m-0"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteStaff}
+              disabled={isDeleting}
+              className="rounded-md m-0"
+            >
+              {isDeleting ? (
+                <Loader2 size={16} className="animate-spin mr-2" />
+              ) : null}
+              {isDeleting ? "Deleting..." : "Yes, Delete Account"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

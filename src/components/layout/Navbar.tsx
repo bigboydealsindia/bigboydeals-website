@@ -433,7 +433,7 @@ export function Navbar() {
                           <Button
                             onClick={handleSearchSubmit}
                             variant="ghost"
-                            className="w-full text-sm font-semibold hover:bg-secondary hover:text-primary h-9"
+                            className="w-full text-sm font-semibold hover:bg-secondary hover:text-primary h-9 rounded-md"
                           >
                             View all results for "{searchValue}"
                           </Button>
@@ -529,14 +529,17 @@ export function Navbar() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
 
-                    {dbUser?.role === "admin" && (
+                    {/* NAYA: Ab Admin aur Staff dono ko panel ka option dikhega */}
+                    {(dbUser?.role === "admin" || dbUser?.role === "staff") && (
                       <>
                         <DropdownMenuItem
                           onClick={() => router.push("/admin")}
                           className="cursor-pointer gap-3 py-2.5 rounded-md"
                         >
-                          <UserStar size={16} className="text-primary" /> Admin
-                          Panel
+                          <UserStar size={16} className="text-primary" />{" "}
+                          {dbUser?.role === "staff"
+                            ? "Staff Panel"
+                            : "Admin Panel"}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                       </>
