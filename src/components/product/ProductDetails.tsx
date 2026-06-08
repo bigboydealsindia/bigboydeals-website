@@ -327,9 +327,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
     const isScriptLoaded = await loadRazorpayScript();
     if (!isScriptLoaded) return toast.error("Payment Gateway Error");
 
-    // FIX: Using dynamic product.codAdvance instead of hardcoded 100
     const amountToPay =
-      paymentMethod === "online" ? finalAmount : product.codAdvance;
+      paymentMethod === "online" ? finalAmount : (product.codAdvance ?? 100);
     setIsProcessingOrder(true);
 
     const orderRes = await createRazorpayOrderId(amountToPay);
@@ -341,7 +340,7 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
     const options = {
       key:
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_your_key_id_here",
-      amount: amountToPay * 100,
+      amount: Math.round(amountToPay * 100), // Ensures absolute integer for Razorpay
       currency: "INR",
       name: "Big Boy Deals",
       description:
@@ -362,8 +361,11 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
           },
         ];
 
+        // FIX: Added missing codAdvancePaid, couponCode, and couponDiscount fields
         const confirmRes = await confirmOrder({
           totalAmount: finalAmount,
+          codAdvancePaid:
+            paymentMethod === "cod" ? (product.codAdvance ?? 100) : finalAmount,
           paymentMethod: paymentMethod === "online" ? "razorpay" : "cod",
           razorpayPaymentId: response.razorpay_payment_id,
           razorpayOrderId: response.razorpay_order_id,
@@ -374,6 +376,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
             pin: dbUser.pincode,
           },
           cartDetails: mockCart,
+          couponCode: localAppliedCoupon?.code || null, // FIX
+          couponDiscount: couponDiscountAmount, // FIX
         });
 
         if (confirmRes.success) {
@@ -1100,7 +1104,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
                     <span className="font-bold text-sm">Cash on Delivery</span>
                     {/* FIX: Dynamic COD Text */}
                     <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                      Pay cash upon receiving (₹{product.codAdvance} advance)
+                      Pay cash upon receiving (₹{product.codAdvance ?? 100}{" "}
+                      advance)
                     </span>
                   </div>
                 </div>
@@ -1138,7 +1143,7 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
                   `Pay ₹${finalAmount.toLocaleString("en-IN")}`
                 ) : (
                   // FIX: Dynamic COD Button Text
-                  `Pay ₹${product.codAdvance} Advance`
+                  `Pay ₹${product.codAdvance ?? 100} Advance`
                 )}
               </Button>
             </div>

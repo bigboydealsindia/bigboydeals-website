@@ -225,7 +225,8 @@ export function CartClient({ user }: CartClientProps) {
       return;
     }
 
-    const amountToPay = paymentMethod === "online" ? finalAmount : totalCodAdvance;
+    const amountToPay =
+      paymentMethod === "online" ? finalAmount : totalCodAdvance;
     toast.loading(`Initiating secure payment of ₹${amountToPay}...`, {
       id: "payment",
     });
@@ -240,7 +241,7 @@ export function CartClient({ user }: CartClientProps) {
     const options = {
       key:
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_your_key_id_here",
-      amount: amountToPay * 100,
+      amount: Math.round(amountToPay * 100), // Ensures absolute integer for Razorpay
       currency: "INR",
       name: "Big Boy Deals",
       description:
@@ -253,6 +254,7 @@ export function CartClient({ user }: CartClientProps) {
           id: "confirm",
         });
 
+        // FIX: Ensured all required server-action fields are present.
         const confirmRes = await confirmOrder({
           totalAmount: finalAmount,
           codAdvancePaid:
@@ -267,6 +269,8 @@ export function CartClient({ user }: CartClientProps) {
             pin: user.pincode,
           },
           cartDetails: cartDetails,
+          couponCode: appliedCoupon?.code || null, // FIX
+          couponDiscount: couponDiscount, // FIX
         });
 
         if (confirmRes.success) {
