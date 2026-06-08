@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ChevronRight, Lock, Eye, ShieldAlert } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
+export const revalidate = 86400; // ISR: Revalidate every 24 hours (static content)
+
 export const metadata = {
   title: "Privacy Policy | Big Boy Deals",
   description: "How we collect, use, and protect your data at Big Boy Deals.",

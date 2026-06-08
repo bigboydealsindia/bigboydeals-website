@@ -2,6 +2,8 @@ import { searchProducts } from "@/app/actions/search";
 import { SearchClient } from "@/components/product/SearchClient";
 import { getAllBrands } from "@/app/actions/brands";
 
+export const revalidate = 0; // Disable static generation
+
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
 }

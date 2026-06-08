@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getUserProfile } from "@/app/actions/auth";
 import { ProfileClient } from "@/components/profile/ProfileClient";
 
+export const revalidate = 0; // Disable static generation for authenticated pages
+
 export const metadata = {
   title: "My Profile | Big Boy Deals",
   description: "Manage your personal information and delivery address.",

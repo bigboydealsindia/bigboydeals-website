@@ -6,6 +6,8 @@ import { BestDealsSection } from "@/components/home/BestDealsSection";
 import { SalesBannerSection } from "@/components/home/SalesBannerSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
