@@ -6,7 +6,10 @@ import { eq, inArray, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 // FRONTEND: User subscription
-export async function subscribeToNewsletter(userId: string, email: string) {
+export async function subscribeToNewsletter(
+  userId: string,
+  whatsappNumber: string,
+) {
   try {
     // Check if user has already subscribed
     const existing = await db.query.newsletterSubscribers.findFirst({
@@ -16,13 +19,13 @@ export async function subscribeToNewsletter(userId: string, email: string) {
     if (existing) {
       return {
         success: false,
-        error: "You are already subscribed to our newsletter!",
+        error: "You are already subscribed to our WhatsApp updates!",
       };
     }
 
     await db.insert(newsletterSubscribers).values({
       userId,
-      subscribedEmail: email,
+      whatsappNumber: whatsappNumber,
     });
 
     revalidatePath("/admin/newsletter");
@@ -39,7 +42,7 @@ export async function getNewsletterSubscribers() {
     const data = await db
       .select({
         id: newsletterSubscribers.id,
-        subscribedEmail: newsletterSubscribers.subscribedEmail,
+        whatsappNumber: newsletterSubscribers.whatsappNumber,
         isRead: newsletterSubscribers.isRead,
         createdAt: newsletterSubscribers.createdAt,
         userName: users.fullName,

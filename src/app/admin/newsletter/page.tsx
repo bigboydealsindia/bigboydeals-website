@@ -2,7 +2,7 @@ import { getNewsletterSubscribers } from "@/app/actions/newsletter";
 import { NewsletterClient } from "@/components/admin/NewsletterClient";
 
 export const metadata = {
-  title: "Newsletter Subscribers | Admin Panel",
+  title: "WhatsApp Subscribers | Admin Panel",
 };
 
 export default async function AdminNewsletterPage() {

@@ -13,6 +13,7 @@ import {
   User,
   Phone,
   Mail,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -20,7 +21,7 @@ import { markNewslettersAsRead } from "@/app/actions/newsletter";
 
 interface Subscriber {
   id: number;
-  subscribedEmail: string;
+  whatsappNumber: string;
   isRead: boolean;
   createdAt: Date;
   userName: string | null;
@@ -38,7 +39,6 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  // Unread items ko upar aur read ko niche dikhane ke liye sort karna
   const sortedSubscribers = [...subscribers].sort((a, b) => {
     if (a.isRead === b.isRead) {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -62,11 +62,11 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
 
   const unreadSubscribers = subscribers.filter((sub) => !sub.isRead);
 
-  const handleCopy = (email: string, id: number) => {
-    navigator.clipboard.writeText(email);
+  const handleCopy = (number: string, id: number) => {
+    navigator.clipboard.writeText(number);
     setCopiedId(id);
-    toast.success("Email Copied!", {
-      description: `${email} copied to clipboard.`,
+    toast.success("Number Copied!", {
+      description: `${number} copied to clipboard.`,
     });
 
     setTimeout(() => {
@@ -85,13 +85,12 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
         description: `${selectedIds.length} subscriptions marked as read.`,
       });
 
-      // Update local state instantly
       setSubscribers((prev) =>
         prev.map((sub) =>
           selectedIds.includes(sub.id) ? { ...sub, isRead: true } : sub,
         ),
       );
-      setSelectedIds([]); // Clear selection
+      setSelectedIds([]);
     } else {
       toast.error("Failed to update", { description: "Something went wrong." });
     }
@@ -100,20 +99,19 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
-            Newsletter Subscribers
+            WhatsApp Subscribers
           </h2>
           <p className="text-muted-foreground mt-1">
-            View and manage users who opted in for marketing and updates.
+            View and manage users who opted in for WhatsApp marketing.
           </p>
         </div>
         <Button
           onClick={handleMarkAsRead}
           disabled={selectedIds.length === 0 || isUpdating}
-          className="rounded-md gap-2 h-10 px-6 font-semibold transition-all"
+          className="rounded-md gap-2 h-10 px-6 font-semibold transition-all bg-green-600 hover:bg-green-700 text-white"
         >
           {isUpdating ? (
             <Loader2 size={16} className="animate-spin" />
@@ -126,7 +124,6 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
 
       <Separator />
 
-      {/* Table Section (Shadcn UI style) */}
       <div className="rounded-md border border-border overflow-hidden bg-background shadow-sm">
         <div className="w-full overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -150,7 +147,7 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
                   Customer Details
                 </th>
                 <th className="h-12 px-4 align-middle font-medium">
-                  Newsletter Email
+                  WhatsApp Number
                 </th>
                 <th className="h-12 px-4 align-middle font-medium text-right">
                   Status
@@ -186,7 +183,6 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
                             : "bg-background"
                         }`}
                       >
-                        {/* Checkbox Column */}
                         <td className="p-4 align-middle">
                           {!sub.isRead ? (
                             <button
@@ -210,7 +206,6 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
                           )}
                         </td>
 
-                        {/* Customer Info Column */}
                         <td className="p-4 align-middle">
                           <div className="flex flex-col space-y-1">
                             <span className="font-semibold text-foreground flex items-center gap-2">
@@ -231,20 +226,27 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
                           </div>
                         </td>
 
-                        {/* Subscribed Email Column (With Copy Icon) */}
                         <td className="p-4 align-middle">
                           <div className="flex items-center gap-3">
                             <span
-                              className={`font-medium ${!sub.isRead ? "text-foreground" : "text-muted-foreground"}`}
+                              className={`font-bold flex items-center gap-2 ${!sub.isRead ? "text-foreground" : "text-muted-foreground"}`}
                             >
-                              {sub.subscribedEmail}
+                              <MessageCircle
+                                size={14}
+                                className={
+                                  !sub.isRead
+                                    ? "text-green-500"
+                                    : "text-muted-foreground"
+                                }
+                              />
+                              {sub.whatsappNumber}
                             </span>
                             <button
                               onClick={() =>
-                                handleCopy(sub.subscribedEmail, sub.id)
+                                handleCopy(sub.whatsappNumber, sub.id)
                               }
                               className="p-1.5 bg-secondary/50 hover:bg-primary/10 hover:text-primary text-muted-foreground rounded-md transition-colors"
-                              title="Copy Email"
+                              title="Copy Number"
                             >
                               {copiedId === sub.id ? (
                                 <Check size={14} className="text-green-500" />
@@ -255,16 +257,15 @@ export function NewsletterClient({ initialData }: NewsletterClientProps) {
                           </div>
                         </td>
 
-                        {/* Status Column */}
                         <td className="p-4 align-middle text-right">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                               sub.isRead
                                 ? "bg-secondary text-muted-foreground"
-                                : "bg-primary/10 text-primary"
+                                : "bg-green-500/10 text-green-600 border border-green-500/20"
                             }`}
                           >
-                            {sub.isRead ? "Reviewed" : "New"}
+                            {sub.isRead ? "Reviewed" : "New Entry"}
                           </span>
                         </td>
                       </motion.tr>

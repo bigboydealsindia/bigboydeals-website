@@ -257,7 +257,7 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   userId: varchar("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
-  subscribedEmail: varchar("subscribed_email", { length: 255 }).notNull(),
+  whatsappNumber: varchar("whatsapp_number", { length: 20 }).notNull(),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
