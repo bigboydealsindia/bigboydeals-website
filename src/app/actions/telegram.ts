@@ -53,8 +53,11 @@ export async function sendTelegramOrderNotification(
   const isOnline =
     orderData.paymentMethod === "online" ||
     orderData.paymentMethod === "razorpay";
-  const amountPaid = isOnline ? total : 100;
-  const balanceDue = isOnline ? 0 : total - 100;
+
+  // FIX: Removed hardcoded 100, replaced with dynamic codAdvancePaid coming from payload
+  const advancePaid = Number(orderData.codAdvancePaid || 0);
+  const amountPaid = isOnline ? total : advancePaid;
+  const balanceDue = isOnline ? 0 : total - advancePaid;
 
   // Formatting a beautiful Telegram Message using HTML tags
   let message = `🛒 <b>NEW ORDER RECEIVED!</b> 🛒\n\n`;
@@ -101,7 +104,6 @@ export async function sendTelegramOrderNotification(
   }
 }
 
-
 // NAYA FUNCTION: Contact Message Notification
 export async function sendTelegramContactNotification(data: {
   fullName: string;
@@ -118,7 +120,7 @@ export async function sendTelegramContactNotification(data: {
   text += `<b>Name:</b> ${data.fullName}\n`;
   text += `<b>Email:</b> ${data.email}\n`;
   text += `<b>Phone:</b> ${data.phone || "Not Provided"}\n\n`;
-  
+
   text += `📝 <b>MESSAGE CONTENT</b>\n`;
   text += `<b>Subject:</b> ${data.subject}\n`;
   text += `<b>Message:</b> \n${data.message}\n`;

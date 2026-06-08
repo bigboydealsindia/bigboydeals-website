@@ -41,8 +41,11 @@ export function InvoiceDialog({
   const isOnline =
     order.paymentMethod === "razorpay" || order.paymentMethod === "online";
   const orderTotal = Number(order.totalAmount || 0);
-  const amountPaid = isOnline ? orderTotal : 100;
-  const balanceDue = isOnline ? 0 : orderTotal - 100;
+
+  // FIX: Removed hardcoded 100, replaced with dynamic codAdvancePaid from database
+  const advancePaid = Number(order.codAdvancePaid || 0);
+  const amountPaid = isOnline ? orderTotal : advancePaid;
+  const balanceDue = isOnline ? 0 : orderTotal - advancePaid;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

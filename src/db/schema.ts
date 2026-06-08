@@ -223,6 +223,10 @@ export const orders = pgTable("orders", {
     .references(() => users.id)
     .notNull(),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  codAdvancePaid: decimal("cod_advance_paid", {
+    precision: 10,
+    scale: 2,
+  }).default("0"), // NAYA: Store COD advance amount paid
   status: orderStatusEnum("status").default("pending").notNull(),
   paymentMethod: paymentMethodEnum("payment_method").notNull(),
   razorpayOrderId: varchar("razorpay_order_id", { length: 255 }),

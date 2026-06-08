@@ -255,6 +255,8 @@ export function CartClient({ user }: CartClientProps) {
 
         const confirmRes = await confirmOrder({
           totalAmount: finalAmount,
+          codAdvancePaid:
+            paymentMethod === "cod" ? totalCodAdvance : finalAmount,
           paymentMethod: paymentMethod === "online" ? "razorpay" : "cod",
           razorpayPaymentId: response.razorpay_payment_id,
           razorpayOrderId: response.razorpay_order_id,

@@ -40,14 +40,14 @@ export async function createRazorpayOrderId(amountInINR: number) {
 
 export async function confirmOrder(data: {
   totalAmount: number;
-  paymentMethod: "razorpay" | "cod"; // FIX: Removed "online" to match database schema strictly
+  codAdvancePaid?: number; // NAYA: Add COD advance amount paid
+  paymentMethod: "razorpay" | "cod";
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shippingAddress: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cartDetails: any[];
-  // Coupon Details
   couponCode?: string | null;
   couponDiscount?: number;
 }) {
@@ -55,12 +55,13 @@ export async function confirmOrder(data: {
   if (!user) return { success: false, error: "Unauthorized" };
 
   try {
-    // 1. Create the main Order with Coupon data
+    // 1. Create the main Order with Coupon data and COD advance paid
     const insertedOrder = await db
       .insert(orders)
       .values({
         userId: user.id,
         totalAmount: data.totalAmount.toString(),
+        codAdvancePaid: data.codAdvancePaid ? data.codAdvancePaid.toString() : "0", // NAYA
         status: "processing",
         paymentMethod: data.paymentMethod,
         razorpayOrderId: data.razorpayOrderId || null,
