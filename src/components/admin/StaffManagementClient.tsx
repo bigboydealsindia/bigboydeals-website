@@ -21,6 +21,8 @@ import {
   User,
   Pen,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Dialog,
@@ -71,6 +73,9 @@ export function StaffManagementClient({
 
   // Form States
   const [selectedPages, setSelectedPages] = useState<string[]>(["/admin"]);
+  const [showPasswordMap, setShowPasswordMap] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const togglePageSelection = (pageValue: string) => {
     setSelectedPages((prev) =>
@@ -78,6 +83,16 @@ export function StaffManagementClient({
         ? prev.filter((p) => p !== pageValue)
         : [...prev, pageValue],
     );
+  };
+
+  const togglePasswordVisibility = (id: string) => {
+    if (!showPasswordMap[id]) {
+      toast.info("Passwords are encrypted by Supabase", {
+        description:
+          "Original passwords cannot be viewed. Please use the Edit button to reset the password if forgotten.",
+      });
+    }
+    setShowPasswordMap((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   // 1. ADD STAFF HANDLER
@@ -218,9 +233,24 @@ export function StaffManagementClient({
                       {staff.email}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      <span className="font-mono text-xs tracking-widest bg-secondary/50 px-2 py-1 rounded">
-                        ••••••••
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs mt-1 tracking-widest bg-secondary/50 px-2 py-1 rounded">
+                          {showPasswordMap[staff.id]
+                            ? "ENCRYPTED_HASH"
+                            : "••••••••"}
+                        </span>
+                        <button
+                          onClick={() => togglePasswordVisibility(staff.id)}
+                          className="p-1 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-secondary/80"
+                          title="Show Password"
+                        >
+                          {showPasswordMap[staff.id] ? (
+                            <EyeOff size={14} />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                        </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1.5">
@@ -231,7 +261,7 @@ export function StaffManagementClient({
                           return (
                             <span
                               key={path}
-                              className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider"
+                              className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider whitespace-nowrap"
                             >
                               {label}
                             </span>
@@ -269,8 +299,9 @@ export function StaffManagementClient({
       {/* 1. ADD NEW STAFF DIALOG */}
       {/* ======================================================== */}
       <Dialog open={isAdding} onOpenChange={setIsAdding}>
-        <DialogContent className="max-w-2xl rounded-md bg-background border-border p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-4 border-b border-border bg-secondary/10">
+        {/* Adjusted dialog size and overflow for perfect mobile rendering */}
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto rounded-md bg-background border-border p-0">
+          <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border bg-secondary/10 sticky top-0 z-10">
             <DialogTitle className="text-xl font-bold">
               Create Staff Account
             </DialogTitle>
@@ -279,8 +310,7 @@ export function StaffManagementClient({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleAddStaff} className="p-6 space-y-6">
-            {/* FIX: Changed grid layout to prevent inputs from squishing */}
+          <form onSubmit={handleAddStaff} className="p-4 sm:p-6 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Full Name</label>
@@ -313,7 +343,6 @@ export function StaffManagementClient({
                   />
                 </div>
               </div>
-              {/* Password takes full width on small screens to avoid wrapping */}
               <div className="space-y-2 sm:col-span-2">
                 <label className="text-sm font-semibold">
                   Temporary Password
@@ -342,7 +371,8 @@ export function StaffManagementClient({
                 <ShieldCheck size={18} className="text-primary" /> Assign Page
                 Access
               </h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {/* FIX: Mobile pe 1 column, small pe 2, tablet pe 3 columns taaki squish na ho */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {availablePages.map((page) => (
                   <label
                     key={page.value}
@@ -356,10 +386,10 @@ export function StaffManagementClient({
                       type="checkbox"
                       checked={selectedPages.includes(page.value)}
                       onChange={() => togglePageSelection(page.value)}
-                      className="accent-primary w-4 h-4"
+                      className="accent-primary shrink-0 w-4 h-4 rounded-sm"
                       disabled={page.value === "/admin"}
                     />
-                    <span className="text-sm font-medium select-none">
+                    <span className="text-sm font-medium select-none truncate">
                       {page.label}
                     </span>
                   </label>
@@ -367,19 +397,19 @@ export function StaffManagementClient({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border mt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsAdding(false)}
-                className="rounded-md h-10"
+                className="rounded-md h-10 w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="rounded-md h-10 min-w-[160px]"
+                className="rounded-md h-10 w-full sm:w-auto min-w-[160px]"
               >
                 {isLoading ? (
                   <Loader2 size={16} className="animate-spin mr-2" />
@@ -398,8 +428,8 @@ export function StaffManagementClient({
         open={!!isEditing}
         onOpenChange={(open) => !open && setIsEditing(null)}
       >
-        <DialogContent className="max-w-2xl rounded-md bg-background border-border p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-4 border-b border-border bg-secondary/10">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto rounded-md bg-background border-border p-0">
+          <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border bg-secondary/10 sticky top-0 z-10">
             <DialogTitle className="text-xl font-bold">
               Edit Staff Access
             </DialogTitle>
@@ -409,7 +439,7 @@ export function StaffManagementClient({
           </DialogHeader>
 
           {isEditing && (
-            <form onSubmit={handleEditStaff} className="p-6 space-y-6">
+            <form onSubmit={handleEditStaff} className="p-4 sm:p-6 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold">Full Name</label>
@@ -428,7 +458,7 @@ export function StaffManagementClient({
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    New Password{" "}
+                    Reset Password{" "}
                     <span className="text-xs font-normal text-muted-foreground">
                       (Optional)
                     </span>
@@ -456,7 +486,7 @@ export function StaffManagementClient({
                   <ShieldCheck size={18} className="text-primary" /> Update Page
                   Access
                 </h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {availablePages.map((page) => (
                     <label
                       key={`edit-${page.value}`}
@@ -470,10 +500,10 @@ export function StaffManagementClient({
                         type="checkbox"
                         checked={selectedPages.includes(page.value)}
                         onChange={() => togglePageSelection(page.value)}
-                        className="accent-primary w-4 h-4"
+                        className="accent-primary shrink-0 w-4 h-4 rounded-sm"
                         disabled={page.value === "/admin"}
                       />
-                      <span className="text-sm font-medium select-none">
+                      <span className="text-sm font-medium select-none truncate">
                         {page.label}
                       </span>
                     </label>
@@ -481,19 +511,19 @@ export function StaffManagementClient({
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border mt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsEditing(null)}
-                  className="rounded-md h-10"
+                  className="rounded-md h-10 w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="rounded-md h-10 min-w-[140px]"
+                  className="rounded-md h-10 w-full sm:w-auto min-w-[140px]"
                 >
                   {isLoading ? (
                     <Loader2 size={16} className="animate-spin mr-2" />
@@ -513,7 +543,7 @@ export function StaffManagementClient({
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
       >
-        <AlertDialogContent className="rounded-md border-border">
+        <AlertDialogContent className="w-[95vw] max-w-lg rounded-md border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-bold">
               Delete Staff Account?
