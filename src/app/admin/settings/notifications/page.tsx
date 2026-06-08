@@ -1,6 +1,8 @@
 import { getTelegramSettings } from "@/app/actions/telegram";
 import { NotificationsClient } from "@/components/admin/NotificationsClient";
 
+export const revalidate = 0; // Disable static generation
+
 export const metadata = {
   title: "Notification Settings | Admin",
 };

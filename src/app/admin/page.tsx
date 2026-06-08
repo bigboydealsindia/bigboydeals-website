@@ -1,6 +1,8 @@
 import { getDashboardStats } from "@/app/actions/dashboard";
 import { DashboardClient } from "@/components/admin/DashboardClient";
 
+export const revalidate = 0; // Disable static generation for admin pages
+
 export const metadata = {
   title: "Admin Dashboard | Big Boy Deals",
 };

@@ -1,6 +1,8 @@
 import { getContactInfo } from "@/app/actions/contact";
 import { ContactUsClient } from "@/components/contact/ContactUsClient";
 
+export const revalidate = 3600; // ISR: Revalidate every hour
+
 export const metadata = {
   title: "Contact Us | Big Boy Deals",
   description:

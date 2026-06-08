@@ -2,6 +2,8 @@ import { CartClient } from "@/components/cart/CartClient";
 import { getUserProfile } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 
+export const revalidate = 0; // Disable static generation for authenticated pages
+
 export const metadata = {
   title: "My Shopping Cart | Big Boy Deals",
   description: "Review your shopping cart and proceed to checkout.",

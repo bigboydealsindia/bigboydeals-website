@@ -3,6 +3,8 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { StaffManagementClient } from "@/components/admin/StaffManagementClient";
 
+export const revalidate = 0; // Disable static generation
+
 export const metadata = {
   title: "Staff Management | Admin Panel",
 };

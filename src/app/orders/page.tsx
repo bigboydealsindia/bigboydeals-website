@@ -1,6 +1,8 @@
 import { getUserOrders } from "@/app/actions/user-orders";
 import { OrdersClient } from "@/components/orders/OrdersClient";
 
+export const revalidate = 0; // Disable static generation for authenticated pages
+
 export const metadata = {
   title: "My Orders | Big Boy Deals",
 };

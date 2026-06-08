@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getUserProfile } from "@/app/actions/auth";
 import { AccountClient } from "@/components/account/AccountClient";
 
+export const revalidate = 0; // Disable static generation for authenticated pages
+
 export const metadata = {
   title: "My Account | Big Boy Deals",
 };

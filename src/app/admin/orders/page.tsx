@@ -1,6 +1,8 @@
 import { getAdminOrders } from "@/app/actions/admin-orders";
 import { OrdersClient } from "@/components/admin/OrdersClient";
 
+export const revalidate = 0; // Disable static generation
+
 export const metadata = {
   title: "Manage Orders | Admin Panel",
 };

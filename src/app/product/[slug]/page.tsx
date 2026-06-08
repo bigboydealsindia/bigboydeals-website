@@ -12,6 +12,8 @@ import { SimilarProducts } from "@/components/product/SimilarProducts";
 import { getUserProfile } from "@/app/actions/auth";
 import { getProductReviews } from "@/app/actions/reviews";
 
+export const revalidate = 3600; // ISR: Revalidate every hour
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }

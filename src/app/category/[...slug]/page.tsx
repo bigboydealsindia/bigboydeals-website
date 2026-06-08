@@ -3,6 +3,8 @@ import { getAllProducts, getDropdownCategories } from "@/app/actions/products";
 import { getAllBrands } from "@/app/actions/brands";
 import { AllProductsClient } from "@/components/product/AllProductsClient";
 
+export const revalidate = 3600; // ISR: Revalidate every hour
+
 export default async function CategoryCatchAllPage({
   params,
 }: {
