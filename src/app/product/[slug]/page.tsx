@@ -69,6 +69,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     name: productData.name ?? "Unnamed",
     sellingPrice: productData.sellingPrice,
     actualPrice: productData.actualPrice,
+    codAdvance: productData.codAdvance ?? 100, // NAYA FIELD DATA
     keyFeatures: (productData.keyFeatures as string[]) || [],
     colorVariants:
       (productData.colorVariants as {
@@ -106,7 +107,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             galleryImages={(productData.galleryImages as string[]) || []}
             productName={productData.name ?? "Product"}
             discount={discountAmount}
-            isMostSelling={productData.isMostSelling} // FIX: Bheja gaya data tag ke liye
+            isMostSelling={productData.isMostSelling}
           />
         </div>
 

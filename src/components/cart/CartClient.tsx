@@ -157,6 +157,14 @@ export function CartClient({ user }: CartClientProps) {
 
   const finalAmount = Math.max(0, subTotal - couponDiscount);
 
+  const totalCodAdvance = useMemo(() => {
+    return cartDetails.reduce((total, item) => {
+      if (!item.product) return total;
+      const advance = item.codAdvance ?? item.product.codAdvance ?? 100;
+      return total + advance * item.quantity;
+    }, 0);
+  }, [cartDetails]);
+
   // Safe side-effect verification to prevent React cascading render errors
   useEffect(() => {
     if (appliedCoupon && couponDiscount === 0 && cartDetails.length > 0) {
@@ -217,7 +225,7 @@ export function CartClient({ user }: CartClientProps) {
       return;
     }
 
-    const amountToPay = paymentMethod === "online" ? finalAmount : 100;
+    const amountToPay = paymentMethod === "online" ? finalAmount : totalCodAdvance;
     toast.loading(`Initiating secure payment of ₹${amountToPay}...`, {
       id: "payment",
     });
@@ -367,6 +375,7 @@ export function CartClient({ user }: CartClientProps) {
             totalDiscount={totalDiscount}
             couponDiscount={couponDiscount}
             finalAmount={finalAmount}
+            totalCodAdvance={totalCodAdvance}
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             isCheckoutShaking={isCheckoutShaking}

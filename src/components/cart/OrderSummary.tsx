@@ -27,6 +27,7 @@ interface OrderSummaryProps {
   totalDiscount: number;
   couponDiscount: number;
   finalAmount: number;
+  totalCodAdvance: number;
   paymentMethod: "online" | "cod";
   setPaymentMethod: (method: "online" | "cod") => void;
   isCheckoutShaking: boolean;
@@ -47,6 +48,7 @@ export function OrderSummary({
   totalDiscount,
   couponDiscount,
   finalAmount,
+  totalCodAdvance,
   paymentMethod,
   setPaymentMethod,
   isCheckoutShaking,
@@ -341,7 +343,7 @@ export function OrderSummary({
                   Cash on Delivery
                 </span>
                 <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                  Pay cash upon receiving (₹100 online advance)
+                  Pay cash upon receiving (₹{totalCodAdvance.toLocaleString("en-IN")} advance)
                 </span>
               </div>
             </div>
@@ -366,7 +368,7 @@ export function OrderSummary({
           >
             {paymentMethod === "online"
               ? `Pay ₹${finalAmount.toLocaleString("en-IN")}`
-              : "Pay ₹100 Advance"}
+              : `Pay ₹${totalCodAdvance.toLocaleString("en-IN")} Advance`}
           </Button>
         </motion.div>
 

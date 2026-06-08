@@ -62,6 +62,7 @@ interface ProductDetailsProps {
     name: string;
     sellingPrice: string;
     actualPrice: string;
+    codAdvance: number; // NAYA: Dynamic advance prop
     keyFeatures: string[];
     colorVariants: { hex: string; name: string; path: string }[];
     sizeVariants: string[];
@@ -121,8 +122,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
   const [isSavingAddress, setIsSavingAddress] = useState(false);
 
   // Payment States
-  const [isProcessingOrder, setIsProcessingOrder] = useState(false); // Button loader
-  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false); // Full screen loader
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
     "online",
   );
@@ -276,6 +277,7 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
           color: selectedColor,
           size: selectedSize,
           quantity: 1,
+          codAdvance: product.codAdvance,
         });
         if (localAppliedCoupon) setGlobalAppliedCoupon(localAppliedCoupon);
         toast.success("Added to Cart successfully!");
@@ -325,8 +327,10 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
     const isScriptLoaded = await loadRazorpayScript();
     if (!isScriptLoaded) return toast.error("Payment Gateway Error");
 
-    const amountToPay = paymentMethod === "online" ? finalAmount : 100;
-    setIsProcessingOrder(true); // Button Loading inside modal
+    // FIX: Using dynamic product.codAdvance instead of hardcoded 100
+    const amountToPay =
+      paymentMethod === "online" ? finalAmount : product.codAdvance;
+    setIsProcessingOrder(true);
 
     const orderRes = await createRazorpayOrderId(amountToPay);
     if (!orderRes.success || !orderRes.orderId) {
@@ -345,7 +349,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
       order_id: orderRes.orderId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: async function (response: any) {
-        // Verification phase started - show full screen loader
         setIsVerifyingPayment(true);
         toast.loading("Verifying and confirming order...", { id: "confirm" });
 
@@ -389,7 +392,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
       theme: { color: "#0f172a" },
     };
 
-    // IMPORTANT FIX: Close the Dialog so Razorpay iframe doesn't get blocked by focus traps
     setReviewDialogOpen(false);
     setIsProcessingOrder(false);
 
@@ -429,7 +431,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
     setIsShareOpen(false);
   };
 
-  // Full Screen Verifying Loader
   if (isVerifyingPayment) {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm min-h-screen">
@@ -540,7 +541,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Price & Smart Coupon Labels */}
       <div className="space-y-3">
         <div className="flex items-baseline gap-3">
           <AnimatePresence mode="popLayout">
@@ -568,7 +568,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
           Inclusive of all taxes
         </p>
 
-        {/* Available Coupons Row */}
         {applicableCoupons.length > 0 && (
           <div className="pt-2 flex flex-wrap gap-2">
             <AnimatePresence>
@@ -963,7 +962,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
               </div>
             </div>
 
-            {/* Same Coupon UI/UX as Cart Page */}
             <div className="space-y-3">
               {localAppliedCoupon ? (
                 <div className="flex items-center justify-between bg-green-500/10 border border-green-500/20 p-3 rounded-md">
@@ -1100,8 +1098,9 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
                   </div>
                   <div className="flex flex-col">
                     <span className="font-bold text-sm">Cash on Delivery</span>
+                    {/* FIX: Dynamic COD Text */}
                     <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                      Pay cash upon receiving (₹100 advance)
+                      Pay cash upon receiving (₹{product.codAdvance} advance)
                     </span>
                   </div>
                 </div>
@@ -1138,7 +1137,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
                 ) : paymentMethod === "online" ? (
                   `Pay ₹${finalAmount.toLocaleString("en-IN")}`
                 ) : (
-                  "Pay ₹100 Advance"
+                  // FIX: Dynamic COD Button Text
+                  `Pay ₹${product.codAdvance} Advance`
                 )}
               </Button>
             </div>

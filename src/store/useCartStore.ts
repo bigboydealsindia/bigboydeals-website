@@ -6,6 +6,7 @@ export interface CartItem {
   color: string;
   size: string;
   quantity: number;
+  codAdvance?: number; // NAYA FIELD ADDED
 }
 
 interface CartState {

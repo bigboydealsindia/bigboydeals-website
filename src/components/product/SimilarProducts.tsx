@@ -59,7 +59,8 @@ export async function SimilarProducts({
                 mainImage: product.mainImage,
                 sellingPrice: product.sellingPrice,
                 actualPrice: product.actualPrice,
-                isMostSelling: product.isMostSelling, // FIX: Data ab pass ho raha hai
+                codAdvance: product.codAdvance ?? 100, // NAYA FIELD ADDED
+                isMostSelling: product.isMostSelling,
               }}
               brandName={brandName || "Exclusive"}
               discount={discount}

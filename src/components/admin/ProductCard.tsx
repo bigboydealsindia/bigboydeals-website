@@ -11,7 +11,7 @@ interface ProductCardProps {
   brandName: string;
   onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
-  onToggleMostSelling: (id: number, currentStatus: boolean) => void; // NAYA PROP
+  onToggleMostSelling: (id: number, currentStatus: boolean) => void;
 }
 
 export function ProductCard({
@@ -45,7 +45,6 @@ export function ProductCard({
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* NAYA: TOP RIGHT TOGGLE BUTTON */}
         <div className="absolute top-1.5 right-1.5 z-10">
           <button
             onClick={handleToggle}
@@ -83,6 +82,13 @@ export function ProductCard({
             className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm ${product.stock > 0 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-destructive/10 text-destructive"}`}
           >
             {product.stock > 0 ? `${product.stock} IN STOCK` : "OUT OF STOCK"}
+          </span>
+        </div>
+
+        {/* NAYA: Admin UI mein COD amount dikhane ke liye */}
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/50 px-1.5 py-0.5 rounded">
+            COD Adv: ₹{product.codAdvance ?? 100}
           </span>
         </div>
 

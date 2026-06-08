@@ -17,6 +17,7 @@ async function ensureProductsTableExists() {
         sub_category_id INTEGER,
         selling_price NUMERIC NOT NULL,
         actual_price NUMERIC NOT NULL,
+        cod_advance INTEGER DEFAULT 100 NOT NULL,
         stock INTEGER DEFAULT 0 NOT NULL,
         supplier_name VARCHAR(255),
         key_features JSONB DEFAULT '[]'::jsonb NOT NULL,
@@ -39,6 +40,7 @@ async function ensureProductsTableExists() {
       ALTER TABLE products ADD COLUMN IF NOT EXISTS sub_category_id INTEGER;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS selling_price NUMERIC DEFAULT 0;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS actual_price NUMERIC DEFAULT 0;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS cod_advance INTEGER DEFAULT 100 NOT NULL;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0 NOT NULL;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_name VARCHAR(255);
       ALTER TABLE products ADD COLUMN IF NOT EXISTS key_features JSONB DEFAULT '[]'::jsonb;
@@ -87,8 +89,9 @@ export async function createProduct(data: any) {
     subCategoryId: data.subCategoryId,
     sellingPrice: data.sellingPrice,
     actualPrice: data.actualPrice,
+    codAdvance: data.codAdvance, // NAYA FIELD
     stock: data.stock,
-    supplierName: data.supplierName || null, // NAYA FIELD ADDED
+    supplierName: data.supplierName || null,
     description: data.description,
     mainImage: data.mainImage,
     keyFeatures: sql`${JSON.stringify(data.keyFeatures)}::jsonb`,
@@ -113,8 +116,9 @@ export async function updateProduct(id: number, data: any) {
       subCategoryId: data.subCategoryId,
       sellingPrice: data.sellingPrice,
       actualPrice: data.actualPrice,
+      codAdvance: data.codAdvance, // NAYA FIELD
       stock: data.stock,
-      supplierName: data.supplierName || null, // NAYA FIELD ADDED
+      supplierName: data.supplierName || null,
       description: data.description,
       mainImage: data.mainImage,
       keyFeatures: sql`${JSON.stringify(data.keyFeatures)}::jsonb`,

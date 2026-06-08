@@ -27,6 +27,7 @@ interface SimilarProductCardProps {
     mainImage: string;
     sellingPrice: string;
     actualPrice: string;
+    codAdvance: number;
     isMostSelling?: boolean;
   };
   brandName: string;

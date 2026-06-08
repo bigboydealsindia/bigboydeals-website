@@ -98,6 +98,7 @@ export default function ProductsAdminPage() {
   const [subCategoryId, setSubCategoryId] = useState<string>("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [actualPrice, setActualPrice] = useState("");
+  const [codAdvance, setCodAdvance] = useState("100"); // NAYA STATE ADD KIYA
   const [stock, setStock] = useState("0");
   const [supplierName, setSupplierName] = useState("");
   const [description, setDescription] = useState("");
@@ -127,7 +128,6 @@ export default function ProductsAdminPage() {
     setAllCategories(catData || []);
   };
 
-  // FIX 2: Added setTimeout to prevent synchronous cascading renders error
   useEffect(() => {
     if (!isLoaded) {
       const timer = setTimeout(() => {
@@ -146,6 +146,7 @@ export default function ProductsAdminPage() {
     setSubCategoryId("");
     setSellingPrice("");
     setActualPrice("");
+    setCodAdvance("100"); // Resetting new state
     setStock("0");
     setSupplierName("");
     setDescription("");
@@ -178,6 +179,7 @@ export default function ProductsAdminPage() {
 
       setSellingPrice(product.sellingPrice);
       setActualPrice(product.actualPrice);
+      setCodAdvance(product.codAdvance ? product.codAdvance.toString() : "100"); // Loading new state
       setStock(product.stock ? product.stock.toString() : "0");
       setSupplierName(product.supplierName || "");
       setDescription(product.description || "");
@@ -284,6 +286,7 @@ export default function ProductsAdminPage() {
         subCategoryId: Number(subCategoryId),
         sellingPrice,
         actualPrice,
+        codAdvance: Number(codAdvance) || 0, // NAYA FIELD ADDED
         stock: Number(stock) || 0,
         supplierName: supplierName.trim() || null,
         description,
@@ -550,7 +553,8 @@ export default function ProductsAdminPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* FIX: Prices & COD Advance 3-column layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold">
                       Selling Price (₹) *
@@ -575,6 +579,19 @@ export default function ProductsAdminPage() {
                       placeholder="1999"
                       disabled={isSaving}
                       className="rounded-md"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-primary">
+                      COD Advance (₹) *
+                    </label>
+                    <Input
+                      type="number"
+                      value={codAdvance}
+                      onChange={(e) => setCodAdvance(e.target.value)}
+                      placeholder="100"
+                      disabled={isSaving}
+                      className="rounded-md border-primary/50"
                     />
                   </div>
                 </div>
@@ -720,7 +737,6 @@ export default function ProductsAdminPage() {
 
               {/* RIGHT COLUMN */}
               <div className="md:col-span-5 space-y-8 bg-secondary/5 p-4 rounded-md border border-border/50">
-                {/* NAYA FIELD: Supplier Name */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold">
                     Supplier Name{" "}

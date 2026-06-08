@@ -8,6 +8,7 @@ export interface Product {
   sellingPrice: string;
   actualPrice: string;
   stock: number;
+  codAdvance: number;
   supplierName?: string | null; // NAYA FIELD
   keyFeatures: string[];
   colorVariants: { hex: string; name: string; path: string }[];

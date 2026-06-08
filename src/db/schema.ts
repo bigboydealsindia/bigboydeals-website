@@ -95,6 +95,8 @@ export const products = pgTable("products", {
   ),
   sellingPrice: numeric("selling_price").notNull(),
   actualPrice: numeric("actual_price").notNull(),
+  codAdvance: integer("cod_advance").default(100).notNull(),
+  
   stock: integer("stock").default(0).notNull(),
   supplierName: varchar("supplier_name", { length: 255 }),
 
