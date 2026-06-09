@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { orders, orderItems, cartItems, productVariants } from "@/db/schema";
 import { getUserProfile } from "./auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ilike } from "drizzle-orm";
 import Razorpay from "razorpay";
 import { sendTelegramOrderNotification } from "./telegram";
 
@@ -24,7 +24,7 @@ export async function createRazorpayOrderId(amountInINR: number) {
   });
 
   const options = {
-    amount: amountInINR * 100, // paise
+    amount: Math.round(amountInINR * 100), // paise (Math.round to prevent decimal errors)
     currency: "INR",
     receipt: `receipt_${Date.now()}`,
   };
@@ -33,14 +33,14 @@ export async function createRazorpayOrderId(amountInINR: number) {
     const order = await razorpay.orders.create(options);
     return { success: true, orderId: order.id };
   } catch (error) {
-    console.error("Razorpay order creation failed:", error);
+    console.error("🔴 Razorpay order creation failed:", error);
     return { success: false, error: "Razorpay order creation failed" };
   }
 }
 
 export async function confirmOrder(data: {
   totalAmount: number;
-  codAdvancePaid?: number; // NAYA: Add COD advance amount paid
+  codAdvancePaid?: number;
   paymentMethod: "razorpay" | "cod";
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
@@ -61,7 +61,9 @@ export async function confirmOrder(data: {
       .values({
         userId: user.id,
         totalAmount: data.totalAmount.toString(),
-        codAdvancePaid: data.codAdvancePaid ? data.codAdvancePaid.toString() : "0", // NAYA
+        codAdvancePaid: data.codAdvancePaid
+          ? data.codAdvancePaid.toString()
+          : "0",
         status: "processing",
         paymentMethod: data.paymentMethod,
         razorpayOrderId: data.razorpayOrderId || null,
@@ -76,23 +78,30 @@ export async function confirmOrder(data: {
 
     const orderId = insertedOrder[0].id;
 
-    // 2. Safely Process and Insert Order Items
+    // 2. Safely Process and Insert Order Items (Advanced Variant Matching)
     for (const item of data.cartDetails) {
+      // Fallback variables
+      const itemColor = item.color || "Default";
+      const itemSize = item.size || "Default";
+
+      // Use ilike for case-insensitive matching to prevent case mismatch errors
+      let variantRecord;
       const exactVariants = await db
         .select()
         .from(productVariants)
         .where(
           and(
             eq(productVariants.productId, item.productId),
-            eq(productVariants.color, item.color),
-            eq(productVariants.size, item.size),
+            ilike(productVariants.color, itemColor),
+            ilike(productVariants.size, itemSize),
           ),
         )
         .limit(1);
 
-      let variantRecord = exactVariants[0];
-
-      if (!variantRecord) {
+      if (exactVariants.length > 0) {
+        variantRecord = exactVariants[0];
+      } else {
+        // Fallback: Agar exact size/color nahi mila toh uss product ka pehla variant uthao
         const anyVariants = await db
           .select()
           .from(productVariants)
@@ -102,14 +111,15 @@ export async function confirmOrder(data: {
         if (anyVariants.length > 0) {
           variantRecord = anyVariants[0];
         } else {
+          // Agar database mein koi variant exist hi nahi karta, toh naya bana lo (Failsafe)
           const newVars = await db
             .insert(productVariants)
             .values({
               productId: item.productId,
-              color: item.color || "Default",
-              size: item.size || "Default",
+              color: itemColor,
+              size: itemSize,
               images: [],
-              stock: 10,
+              stock: 10, // Default stock
             })
             .returning();
           variantRecord = newVars[0];
@@ -127,14 +137,23 @@ export async function confirmOrder(data: {
     // 3. Clear the user's cart
     await db.delete(cartItems).where(eq(cartItems.userId, user.id));
 
-    // 4. SMART: Send Telegram Notification (Background Async task)
+    // 4. Send Telegram Notification (Background Async task)
     sendTelegramOrderNotification(orderId, user, data).catch((err) =>
-      console.error("Telegram Notification Error:", err),
+      console.error("🔴 Telegram Notification Error:", err),
     );
 
     return { success: true, orderId };
-  } catch (error) {
-    console.error("Order Confirmation Error:", error);
-    return { success: false, error: "Failed to process order" };
+  } catch (error: any) {
+    // ADVANCED LOGGING: Isse actual exact error VS Code ke terminal mein dikhega!
+    console.error(
+      "🔴 ORDER INSERTION DATABASE ERROR ->",
+      error.message || error,
+    );
+
+    // Frontend par original error message bhejna taaki issue turant samajh aaye
+    return {
+      success: false,
+      error: `DB Error: ${error.message || "Failed to process order"}`,
+    };
   }
 }
