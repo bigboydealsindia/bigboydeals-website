@@ -14,6 +14,9 @@ const inter = Inter({
   variable: "--font-sans",
 });
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // FULLY SEO OPTIMIZED METADATA
 export const metadata: Metadata = {
   metadataBase: new URL("https://bigboydeals.com"), // Aapka live domain
