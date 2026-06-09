@@ -7,6 +7,9 @@ export const metadata = {
   title: "Order Confirmed | Big Boy Deals",
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0; // Disable static cache
+
 export default function OrderSuccessPage() {
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 relative overflow-hidden bg-secondary/5">
