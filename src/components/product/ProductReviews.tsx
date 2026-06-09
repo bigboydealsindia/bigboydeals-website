@@ -363,7 +363,7 @@ export function ProductReviews({
                       {review.adminReply && (
                         <div className="mt-3 ml-6 bg-secondary/20 p-3 rounded-md border-l-2 border-primary">
                           <p className="text-xs font-bold text-primary flex items-center gap-1.5 mb-1">
-                            <MessageSquareReply size={14} /> Admin Reply
+                            <MessageSquareReply size={14} /> Bigboydeals Reply
                           </p>
                           <p className="text-xs text-foreground/80">
                             {review.adminReply}
