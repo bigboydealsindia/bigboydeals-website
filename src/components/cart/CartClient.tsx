@@ -225,7 +225,8 @@ export function CartClient({ user }: CartClientProps) {
       return;
     }
 
-    const amountToPay = paymentMethod === "online" ? finalAmount : totalCodAdvance;
+    const amountToPay =
+      paymentMethod === "online" ? finalAmount : totalCodAdvance;
     toast.loading(`Initiating secure payment of ₹${amountToPay}...`, {
       id: "payment",
     });
@@ -240,7 +241,7 @@ export function CartClient({ user }: CartClientProps) {
     const options = {
       key:
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_your_key_id_here",
-      amount: amountToPay * 100,
+      amount: Math.round(amountToPay * 100), // Ensures absolute integer for Razorpay
       currency: "INR",
       name: "Big Boy Deals",
       description:
@@ -253,8 +254,11 @@ export function CartClient({ user }: CartClientProps) {
           id: "confirm",
         });
 
+        // Backend order details payload
         const confirmRes = await confirmOrder({
           totalAmount: finalAmount,
+          codAdvancePaid:
+            paymentMethod === "cod" ? totalCodAdvance : finalAmount,
           paymentMethod: paymentMethod === "online" ? "razorpay" : "cod",
           razorpayPaymentId: response.razorpay_payment_id,
           razorpayOrderId: response.razorpay_order_id,
@@ -265,6 +269,8 @@ export function CartClient({ user }: CartClientProps) {
             pin: user.pincode,
           },
           cartDetails: cartDetails,
+          couponCode: appliedCoupon?.code || null,
+          couponDiscount: couponDiscount,
         });
 
         if (confirmRes.success) {
@@ -274,7 +280,8 @@ export function CartClient({ user }: CartClientProps) {
           router.push("/order-success");
         } else {
           setIsProcessingPayment(false);
-          toast.error("Order recording failed, please contact support.", {
+          // SHOWING EXACT DB ERROR NOW
+          toast.error(confirmRes.error || "Order recording failed.", {
             id: "confirm",
           });
         }

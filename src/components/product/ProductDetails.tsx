@@ -62,7 +62,7 @@ interface ProductDetailsProps {
     name: string;
     sellingPrice: string;
     actualPrice: string;
-    codAdvance: number; // NAYA: Dynamic advance prop
+    codAdvance: number;
     keyFeatures: string[];
     colorVariants: { hex: string; name: string; path: string }[];
     sizeVariants: string[];
@@ -361,7 +361,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
           },
         ];
 
-        // FIX: Added missing codAdvancePaid, couponCode, and couponDiscount fields
         const confirmRes = await confirmOrder({
           totalAmount: finalAmount,
           codAdvancePaid:
@@ -376,8 +375,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
             pin: dbUser.pincode,
           },
           cartDetails: mockCart,
-          couponCode: localAppliedCoupon?.code || null, // FIX
-          couponDiscount: couponDiscountAmount, // FIX
+          couponCode: localAppliedCoupon?.code || null,
+          couponDiscount: couponDiscountAmount,
         });
 
         if (confirmRes.success) {
@@ -385,7 +384,8 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
           router.push("/order-success");
         } else {
           setIsVerifyingPayment(false);
-          toast.error("Order failed.", { id: "confirm" });
+          // SHOWING EXACT DB ERROR NOW
+          toast.error(confirmRes.error || "Order failed.", { id: "confirm" });
         }
       },
       prefill: {
@@ -1102,7 +1102,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
                   </div>
                   <div className="flex flex-col">
                     <span className="font-bold text-sm">Cash on Delivery</span>
-                    {/* FIX: Dynamic COD Text */}
                     <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
                       Pay cash upon receiving (₹{product.codAdvance ?? 100}{" "}
                       advance)
@@ -1142,7 +1141,6 @@ export function ProductDetails({ product, brandName }: ProductDetailsProps) {
                 ) : paymentMethod === "online" ? (
                   `Pay ₹${finalAmount.toLocaleString("en-IN")}`
                 ) : (
-                  // FIX: Dynamic COD Button Text
                   `Pay ₹${product.codAdvance ?? 100} Advance`
                 )}
               </Button>
