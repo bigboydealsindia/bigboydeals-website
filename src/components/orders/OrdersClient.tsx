@@ -128,10 +128,16 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
             const isOnline =
               order.paymentMethod === "razorpay" ||
               order.paymentMethod === "online";
+
             const orderTotal = Number(order.totalAmount || 0);
-            const amountPaid = isOnline ? orderTotal : 100;
-            const balanceDue = isOnline ? 0 : orderTotal - 100;
             const couponDiscount = Number(order.couponDiscount || 0);
+
+            // STRICT FIX: Ensure we parse the exact DB string, fallback to 0 strictly.
+            const advancePaid = order.codAdvancePaid
+              ? Number(order.codAdvancePaid)
+              : 0;
+            const amountPaid = isOnline ? orderTotal : advancePaid;
+            const balanceDue = isOnline ? 0 : orderTotal - advancePaid;
 
             const orderDate = new Date(order.createdAt);
             const statusConfig = getStatusDisplay(order.status);
@@ -144,7 +150,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                 key={order.id}
                 className="bg-background border border-border rounded-md shadow-sm overflow-hidden flex flex-col"
               >
-                {/* Order Header - Highly Responsive */}
                 <div className="bg-secondary/5 p-3 sm:p-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                   <div className="space-y-2 sm:space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
@@ -180,7 +185,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                     </div>
                   </div>
 
-                  {/* Total & Coupon Highlights on Mobile top */}
                   <div className="flex flex-row sm:flex-col justify-between items-end sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-border/50">
                     <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
                       Order Total
@@ -193,7 +197,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                   </div>
                 </div>
 
-                {/* Applied Coupon Banner (If exists) */}
                 {order.couponCode && couponDiscount > 0 && (
                   <div className="bg-green-500/10 border-b border-green-500/20 px-3 sm:px-5 py-2 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 sm:gap-2">
@@ -211,7 +214,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                   </div>
                 )}
 
-                {/* Order Items - Responsive Layout */}
                 <div className="p-0">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {order.items.map((itemObj: any, idx: number) => {
@@ -224,7 +226,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                         key={idx}
                         className="flex flex-row items-start gap-3 sm:gap-4 p-3 sm:p-5 border-b border-border/50 last:border-b-0 hover:bg-secondary/10 transition-colors"
                       >
-                        {/* Left: Image */}
                         <div className="relative w-16 h-20 sm:w-20 sm:h-24 bg-secondary/20 rounded-md shrink-0 overflow-hidden border border-border">
                           {prod?.mainImage ? (
                             <Image
@@ -240,7 +241,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                           )}
                         </div>
 
-                        {/* Right: Details */}
                         <div className="flex-1 flex flex-col justify-between h-full min-h-[80px] sm:min-h-[96px] w-full">
                           <div className="space-y-1 sm:space-y-1.5">
                             <h4 className="font-bold text-xs sm:text-sm text-foreground line-clamp-2 leading-tight pr-2">
@@ -288,7 +288,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                   })}
                 </div>
 
-                {/* Payment Summary Footer - Stacked on Mobile, Row on Desktop */}
                 <div className="bg-secondary/10 p-3 sm:p-5 border-t border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-4">
                   <div className="flex items-center gap-2.5 sm:gap-3 w-full md:w-auto">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-background border border-border flex items-center justify-center shrink-0">
@@ -319,7 +318,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: any[] }) {
                     </div>
                   </div>
 
-                  {/* Grid layout for amounts on mobile to save vertical space */}
                   <div className="grid grid-cols-2 md:flex items-center gap-3 sm:gap-6 w-full md:w-auto bg-background p-2.5 sm:p-3 md:p-0 md:bg-transparent rounded-md border border-border md:border-none">
                     <div className="text-left md:text-right">
                       <p className="text-[10px] sm:text-xs font-bold text-muted-foreground mb-0.5 sm:mb-1">
