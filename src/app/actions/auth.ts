@@ -79,7 +79,7 @@ export async function signInWithEmail(formData: FormData) {
       success: false,
       error:
         "No account found with this email. Please create an account first.",
-      needsSignup: true, // Frontend ko signal dene ke liye
+      needsSignup: true,
     };
   }
 
@@ -111,22 +111,26 @@ export async function signInWithGoogle() {
     provider: "google",
     options: {
       redirectTo: `${origin}/auth/callback`,
+      queryParams: {
+        prompt: "select_account",
+      },
+      // NAYA FIX: Supabase URL redirect bypass
+      skipBrowserRedirect: true,
     },
   });
 
-  if (data.url) {
-    redirect(data.url);
-  }
-
   if (error) return { success: false, error: error.message };
+
+  // NAYA FIX: Return the URL to the frontend so it can open in a popup
+  if (data?.url) {
+    return { success: true, url: data.url };
+  }
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
 
-  // Yahan se redirect("/login") hata diya hai taaki "Failed to fetch" error na aaye.
-  // Redirect ab hum client-side se karenge.
   return { success: true };
 }
 
@@ -143,15 +147,12 @@ export async function getUserProfile() {
       where: eq(users.id, user.id),
     });
 
-    // 🚀 SELF-HEALING LOGIC: Google OAuth Bypass Fix
     if (!dbUser) {
-      // Agar Auth mein hai par DB mein missing hai, toh yahan automatic sync chalega
       await syncUserToDatabase(
         user,
         user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
       );
 
-      // Sync hone ke baad turant DB se naya data fetch kar lenge
       dbUser = await db.query.users.findFirst({
         where: eq(users.id, user.id),
       });
